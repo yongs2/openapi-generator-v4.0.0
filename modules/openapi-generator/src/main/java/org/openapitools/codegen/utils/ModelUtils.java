@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-
+import java.util.regex.Pattern;
 
 public class ModelUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelUtils.class);
@@ -287,7 +287,8 @@ public class ModelUtils {
     }
 
     public static String getSimpleRef(String ref) {
-        if (ref.startsWith("#/components/")) {
+        Pattern refPattern = Pattern.compile("((\\./)?.*)?#/(components|definitions)/.*");
+        if (refPattern.matcher(ref).matches()) {
             ref = ref.substring(ref.lastIndexOf("/") + 1);
         } else if (ref.startsWith("#/definitions/")) {
             ref = ref.substring(ref.lastIndexOf("/") + 1);
@@ -302,6 +303,9 @@ public class ModelUtils {
     }
 
     public static boolean isObjectSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof ObjectSchema) {
             return true;
         }
@@ -319,6 +323,9 @@ public class ModelUtils {
     }
 
     public static boolean isComposedSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof ComposedSchema) {
             return true;
         }
@@ -326,6 +333,9 @@ public class ModelUtils {
     }
 
     public static boolean isMapSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof MapSchema) {
             return true;
         }
@@ -357,6 +367,9 @@ public class ModelUtils {
     }
 
     public static boolean isStringSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof StringSchema || SchemaTypeUtil.STRING_TYPE.equals(schema.getType())) {
             return true;
         }
@@ -364,6 +377,9 @@ public class ModelUtils {
     }
 
     public static boolean isIntegerSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof IntegerSchema) {
             return true;
         }
@@ -374,6 +390,9 @@ public class ModelUtils {
     }
 
     public static boolean isShortSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (SchemaTypeUtil.INTEGER_TYPE.equals(schema.getType()) // type: integer
                 && SchemaTypeUtil.INTEGER32_FORMAT.equals(schema.getFormat())) { // format: short (int32)
             return true;
@@ -382,6 +401,9 @@ public class ModelUtils {
     }
 
     public static boolean isLongSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (SchemaTypeUtil.INTEGER_TYPE.equals(schema.getType()) // type: integer
                 && SchemaTypeUtil.INTEGER64_FORMAT.equals(schema.getFormat())) { // format: long (int64)
             return true;
@@ -390,6 +412,9 @@ public class ModelUtils {
     }
 
     public static boolean isBooleanSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof BooleanSchema) {
             return true;
         }
@@ -400,6 +425,9 @@ public class ModelUtils {
     }
 
     public static boolean isNumberSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof NumberSchema) {
             return true;
         }
@@ -410,6 +438,9 @@ public class ModelUtils {
     }
 
     public static boolean isFloatSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (SchemaTypeUtil.NUMBER_TYPE.equals(schema.getType())
                 && SchemaTypeUtil.FLOAT_FORMAT.equals(schema.getFormat())) { // format: float
             return true;
@@ -418,6 +449,9 @@ public class ModelUtils {
     }
 
     public static boolean isDoubleSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (SchemaTypeUtil.NUMBER_TYPE.equals(schema.getType())
                 && SchemaTypeUtil.DOUBLE_FORMAT.equals(schema.getFormat())) { // format: double
             return true;
@@ -426,6 +460,9 @@ public class ModelUtils {
     }
 
     public static boolean isDateSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof DateSchema) {
             return true;
         }
@@ -438,6 +475,9 @@ public class ModelUtils {
     }
 
     public static boolean isDateTimeSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof DateTimeSchema) {
             return true;
         }
@@ -449,6 +489,9 @@ public class ModelUtils {
     }
 
     public static boolean isPasswordSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof PasswordSchema) {
             return true;
         }
@@ -460,6 +503,9 @@ public class ModelUtils {
     }
 
     public static boolean isByteArraySchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof ByteArraySchema) {
             return true;
         }
@@ -471,6 +517,9 @@ public class ModelUtils {
     }
 
     public static boolean isBinarySchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof BinarySchema) {
             return true;
         }
@@ -482,6 +531,9 @@ public class ModelUtils {
     }
 
     public static boolean isFileSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof FileSchema) {
             return true;
         }
@@ -490,6 +542,9 @@ public class ModelUtils {
     }
 
     public static boolean isUUIDSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof UUIDSchema) {
             return true;
         }
@@ -501,6 +556,9 @@ public class ModelUtils {
     }
 
     public static boolean isEmailSchema(Schema schema) {
+        if (schema == null) {
+            return false;
+        }
         if (schema instanceof EmailSchema) {
             return true;
         }
@@ -528,10 +586,10 @@ public class ModelUtils {
             return true;
         }
 
-        // composed schema is a model
-        if (schema instanceof ComposedSchema) {
-            return true;
-        }
+        // // composed schema is a model
+        // if (schema instanceof ComposedSchema) {
+        //     return true;
+        // }
 
         return false;
     }
@@ -753,10 +811,16 @@ public class ModelUtils {
         if (content == null || content.isEmpty()) {
             return null;
         }
+        MediaType mediaType = null;
+        mediaType = (MediaType)content.values().iterator().next();
         if (content.size() > 1) {
+            if (content.containsKey("multipart/related")) {
+                mediaType = (MediaType)content.get("multipart/related");
+                LOGGER.warn("Multiple schemas found in content, returning \"multipart/related\"");
+            } else {
             LOGGER.warn("Multiple schemas found in content, returning only the first one");
         }
-        MediaType mediaType = content.values().iterator().next();
+        }
         return mediaType.getSchema();
     }
 

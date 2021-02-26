@@ -57,7 +57,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public class CodegenConfigurator implements Serializable {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(CodegenConfigurator.class);
-
+    private static Map<String, String> nameMigrationMap = new HashMap<String, String>();
     private String generatorName;
     private String inputSpec;
     private String outputDir;
@@ -133,7 +133,13 @@ public class CodegenConfigurator implements Serializable {
      * @return The fluent instance of {@link CodegenConfigurator}
      */
     public CodegenConfigurator setGeneratorName(final String generatorName) {
-        this.generatorName = generatorName;
+        if (nameMigrationMap.containsKey(generatorName)) {
+            String newValue = nameMigrationMap.get(generatorName);
+            LOGGER.warn(String.format(Locale.ROOT, "The name '%s' is a deprecated. Please update to the new name of '%s'.", generatorName, newValue));
+            this.generatorName = newValue;
+        } else {
+            this.generatorName = generatorName;
+        }
         return this;
     }
 

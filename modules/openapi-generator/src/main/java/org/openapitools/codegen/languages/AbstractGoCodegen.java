@@ -18,6 +18,7 @@
 package org.openapitools.codegen.languages;
 
 import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 import static org.openapitools.codegen.utils.StringUtils.underscore;
@@ -102,10 +104,11 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
         typeMapping.put("DateTime", "time.Time");
         typeMapping.put("password", "string");
         typeMapping.put("File", "*os.File");
-        typeMapping.put("file", "*os.File");
-        typeMapping.put("binary", "*os.File");
+        typeMapping.put("file", "[]byte");
+        typeMapping.put("binary", "[]byte");
         typeMapping.put("ByteArray", "string");
         typeMapping.put("object", "map[string]interface{}");
+        typeMapping.put("interface{}", "interface{}");
 
         importMapping = new HashMap<String, String>();
 
@@ -116,6 +119,16 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
                 .defaultValue("1.0.0"));
         cliOptions.add(new CliOption(CodegenConstants.HIDE_GENERATION_TIMESTAMP, CodegenConstants.HIDE_GENERATION_TIMESTAMP_DESC)
                 .defaultValue(Boolean.TRUE.toString()));
+    }
+
+    @Override
+    public String toAnyOfName(List<String> names, ComposedSchema composedSchema) {
+        return "interface{}";
+    }
+
+    @Override
+    public String toOneOfName(List<String> names, ComposedSchema composedSchema) {
+        return "interface{}";
     }
 
     @Override
@@ -659,6 +672,23 @@ public abstract class AbstractGoCodegen extends DefaultCodegen implements Codege
             } catch (Exception e) {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());
             }
+        }
+    }
+
+    @Override
+    public void postProcessModelProperty(CodegenModel model, CodegenProperty property) {
+        super.postProcessModelProperty(model, property);
+        if (property.isEnum) {
+            property.isPrimitiveType = true;
+        }
+        if (property.dataType.startsWith("[]")) {
+            property.isPrimitiveType = true;
+        }
+        if (Pattern.matches("map\\[.+\\][^ ]+", property.dataType)) {
+            property.isPrimitiveType = true;
+        }
+        if (property.dataType.equals("interface{}")) {
+            property.isPrimitiveType = true;
         }
     }
 }

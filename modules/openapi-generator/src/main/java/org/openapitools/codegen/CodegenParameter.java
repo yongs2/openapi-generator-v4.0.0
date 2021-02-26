@@ -44,6 +44,9 @@ public class CodegenParameter {
     public Map<String, Object> vendorExtensions = new HashMap<String, Object>();
     public boolean hasValidation;
     public boolean isNullable;
+    
+    public String contentType;
+    public String captialBaseName;
 
     /**
      * Determines whether this parameter is mandatory. If the parameter is in "path",
@@ -172,7 +175,8 @@ public class CodegenParameter {
         output.isFreeFormObject = this.isFreeFormObject;
         output.isListContainer = this.isListContainer;
         output.isMapContainer = this.isMapContainer;
-
+        output.contentType = this.contentType;
+        output.captialBaseName = this.captialBaseName;
         return output;
     }
 
@@ -382,6 +386,7 @@ public class CodegenParameter {
                 ", minItems=" + minItems +
                 ", uniqueItems=" + uniqueItems +
                 ", multipleOf=" + multipleOf +
+                ", contentType=" + this.contentType +
                 '}';
     }
 }

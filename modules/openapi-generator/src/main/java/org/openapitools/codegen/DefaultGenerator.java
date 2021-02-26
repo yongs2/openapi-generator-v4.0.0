@@ -25,6 +25,7 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.*;
@@ -459,13 +460,46 @@ public class DefaultGenerator extends AbstractGenerator implements Generator {
                         continue;
                     }
                 }
-
+                LOGGER.error(">> generateModels.Model(Name({})", name);
                 Map<String, Schema> schemaMap = new HashMap<>();
                 schemaMap.put(name, schema);
                 Map<String, Object> models = processModels(config, schemaMap);
                 models.put("classname", config.toModelName(name));
                 models.putAll(config.additionalProperties());
                 allProcessedModels.put(name, models);
+                if (schema.getProperties() == null) continue;
+                Map<String, Schema> properties = schema.getProperties();
+                for (String keyProperties : properties.keySet()) {
+                    String keyPropertiesString = keyProperties.toString();
+                    Schema schemaProperties = properties.get(keyProperties);
+                    if (!(schemaProperties instanceof ComposedSchema)) continue;
+                    ComposedSchema cs = (ComposedSchema)schemaProperties;
+                    Boolean has$ref = false;
+                    Boolean hasProperties = false;
+                    String nameOf$ref = "";
+                    if (cs.getAllOf() != null) {
+                        for (Schema s2 : cs.getAllOf()) {
+                            if (s2.get$ref() != null) {
+                                has$ref = true;
+                                Schema unaliasSchema = ModelUtils.unaliasSchema(openAPI, s2);
+                                String schemaName = ModelUtils.getSimpleRef(unaliasSchema.get$ref());
+                                nameOf$ref = config.toModelName(schemaName);
+                            }
+                            if (s2.getProperties() == null) continue;
+                            hasProperties = true;
+                        }
+                    }
+                    if (!has$ref.booleanValue() || !hasProperties.booleanValue()) continue;
+                    String newName = config.toModelName(nameOf$ref + name);
+                    HashMap<String, Schema> schemaPropertiesMap = new HashMap<String, Schema>();
+                    schemaPropertiesMap.put(newName, cs);
+                    Map<String, Object> modelsProperties = processModels(config, schemaPropertiesMap);
+                    modelsProperties.put("classname", config.toModelName(newName));
+                    modelsProperties.putAll(config.additionalProperties());
+                    allProcessedModels.put(newName, modelsProperties);
+                    LOGGER.error(">> allProcessedModels.put(Name({}),modelsProperties({})", newName, modelsProperties);
+                }
+                LOGGER.error("<< generateModels.Model(Name({})", name);
             } catch (Exception e) {
                 throw new RuntimeException("Could not process model '" + name + "'" + ".Please make sure that your schema is correct!", e);
             }
@@ -853,6 +887,7 @@ public class DefaultGenerator extends AbstractGenerator implements Generator {
         if (servers != null && !servers.isEmpty()) {
             bundle.put("servers", servers);
             bundle.put("hasServers", true);
+            bundle.put("defaultServer", servers.get(0));
         }
 
         if (openAPI.getExternalDocs() != null) {
@@ -1151,6 +1186,7 @@ public class DefaultGenerator extends AbstractGenerator implements Generator {
     }
 
     private Map<String, Object> processModels(CodegenConfig config, Map<String, Schema> definitions) {
+        LOGGER.error(">> processModels(config({}),definitions({})", config.getName(), definitions.size());
         Map<String, Object> objs = new HashMap<String, Object>();
         objs.put("package", config.modelPackage());
         List<Object> models = new ArrayList<Object>();
@@ -1193,6 +1229,7 @@ public class DefaultGenerator extends AbstractGenerator implements Generator {
         }
         objs.put("imports", imports);
         config.postProcessModels(objs);
+        LOGGER.error("<< processModels(config({}),definitions({})", config.getName(), definitions.size());
         return objs;
     }
 

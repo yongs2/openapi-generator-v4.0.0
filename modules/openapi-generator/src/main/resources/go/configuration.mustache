@@ -3,62 +3,71 @@ package {{packageName}}
 
 import (
 	"net/http"
+    "strings"
 )
 
-// contextKeys are used to identify the type of value in the context.
-// Since these are string, it is possible to get a short description of the
-// context key for logging and debugging using key.String().
-
-type contextKey string
-
-func (c contextKey) String() string {
-	return "auth " + string(c)
-}
-
-var (
-	// ContextOAuth2 takes an oauth2.TokenSource as authentication for the request.
-	ContextOAuth2 = contextKey("token")
-
-	// ContextBasicAuth takes BasicAuth as authentication for the request.
-	ContextBasicAuth = contextKey("basic")
-
-	// ContextAccessToken takes a string oauth2 access token as authentication for the request.
-	ContextAccessToken = contextKey("accesstoken")
-
-	// ContextAPIKey takes an APIKey as authentication for the request
-	ContextAPIKey = contextKey("apikey")
-)
-
-// BasicAuth provides basic http authentication to a request passed via context using ContextBasicAuth
-type BasicAuth struct {
-	UserName string `json:"userName,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
-// APIKey provides API key based authentication to a request passed via context using ContextAPIKey
-type APIKey struct {
-	Key    string
-	Prefix string
-}
-
+{{#defaultServer}}
 type Configuration struct {
-	BasePath      string            `json:"basePath,omitempty"`
-	Host          string            `json:"host,omitempty"`
-	Scheme        string            `json:"scheme,omitempty"`
-	DefaultHeader map[string]string `json:"defaultHeader,omitempty"`
-	UserAgent     string            `json:"userAgent,omitempty"`
-	HTTPClient    *http.Client
+    url           string
+    basePath      string
+    host          string
+    defaultHeader map[string]string
+    userAgent     string
+    httpClient *http.Client
 }
+{{/defaultServer}}
 
 func NewConfiguration() *Configuration {
 	cfg := &Configuration{
-		BasePath:      "{{{basePath}}}",
-		DefaultHeader: make(map[string]string),
-		UserAgent:     "{{#httpUserAgent}}{{{.}}}{{/httpUserAgent}}{{^httpUserAgent}}OpenAPI-Generator/{{{packageVersion}}}/go{{/httpUserAgent}}",
+        basePath: "{{{basePath}}}",
+		url:      "{{#defaultServer}}{{{url}}}{{/defaultServer}}",
+		defaultHeader: make(map[string]string),
+		userAgent:     "{{#httpUserAgent}}{{{.}}}{{/httpUserAgent}}{{^httpUserAgent}}OpenAPI-Generator/{{{packageVersion}}}/go{{/httpUserAgent}}",
 	}
 	return cfg
 }
 
+func (c *Configuration) SetBasePath({{#defaultServer}}{{#variables}}{{{name}}} string{{^-last}}, {{/-last}}{{/variables}}{{/defaultServer}}) {
+    url := c.url
+
+{{#defaultServer}}
+{{#variables}}
+    // Replace {{{name}}}
+    url = strings.Replace(url, "{"+"{{{name}}}"+"}", {{{name}}}, -1)
+{{/variables}}
+{{/defaultServer}}
+
+    c.basePath = url
+}
+
+func (c *Configuration) BasePath() string {
+    return c.basePath
+}
+
+func (c *Configuration) Host() string {
+    return c.host
+}
+
+func (c *Configuration) SetHost(host string) {
+    c.host = host
+}
+
+func (c *Configuration) UserAgent() string {
+    return c.userAgent
+}
+
+func (c *Configuration) SetUserAgent(userAgent string) {
+    c.userAgent = userAgent
+}
+
+func (c *Configuration) DefaultHeader() map[string]string {
+    return c.defaultHeader
+}
+
 func (c *Configuration) AddDefaultHeader(key string, value string) {
-	c.DefaultHeader[key] = value
+    c.defaultHeader[key] = value
+}
+
+func (c *Configuration) HTTPClient() *http.Client {
+return c.httpClient
 }

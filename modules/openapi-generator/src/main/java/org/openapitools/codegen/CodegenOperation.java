@@ -34,6 +34,7 @@ public class CodegenOperation {
             returnContainer, summary, unescapedNotes, notes, baseName, defaultResponse;
     public CodegenDiscriminator discriminator;
     public List<Map<String, String>> consumes, produces, prioritizedContentTypes;
+    public List<String> returnTypes = new LinkedList<String>();
     public List<CodegenServer> servers = new ArrayList<CodegenServer>();
     public CodegenParameter bodyParam;
     public List<CodegenParameter> allParams = new ArrayList<CodegenParameter>();
@@ -59,6 +60,7 @@ public class CodegenOperation {
     public String operationIdLowerCase; // for markdown documentation
     public String operationIdCamelCase; // for class names
     public String operationIdSnakeCase;
+    public Boolean requestBodyRequired;
 
     /**
      * Check if there's at least one parameter
@@ -220,6 +222,22 @@ public class CodegenOperation {
      */
     public boolean isRestful() {
         return isRestfulIndex() || isRestfulShow() || isRestfulCreate() || isRestfulUpdate() || isRestfulDestroy();
+    }
+    
+    public boolean isMultipleSuccessResponse() {
+        return responses.stream().filter(CodegenResponse::isSuccessResponse).count() > 1L;
+    }
+    
+    public boolean isMultipleRequestMediaType() {
+        return consumes != null && this.consumes.size() > 1;
+    }
+    
+    public boolean hasDefaultResponse() {
+        return responses.stream().anyMatch(CodegenResponse::isDefaultResponse);
+    }
+    
+    public boolean hasConsumes() {
+        return consumes != null && this.consumes.size() > 0;
     }
 
     /**

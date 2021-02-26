@@ -92,11 +92,14 @@ public class GoClientCodegen extends AbstractGoCodegen {
         supportingFiles.add(new SupportingFile("git_push.sh.mustache", "", "git_push.sh"));
         supportingFiles.add(new SupportingFile("gitignore.mustache", "", ".gitignore"));
         supportingFiles.add(new SupportingFile("configuration.mustache", "", "configuration.go"));
-        supportingFiles.add(new SupportingFile("client.mustache", "", "client.go"));
+        supportingFiles.add(new SupportingFile("api_client.mustache", "", "client.go"));
         supportingFiles.add(new SupportingFile("response.mustache", "", "response.go"));
         supportingFiles.add(new SupportingFile("go.mod.mustache", "", "go.mod"));
         supportingFiles.add(new SupportingFile("go.sum", "", "go.sum"));
         supportingFiles.add(new SupportingFile(".travis.yml", "", ".travis.yml"));
+        supportingFiles.add(new SupportingFile("openapi_auth.mustache", "common", "auth.go"));
+        supportingFiles.add(new SupportingFile("openapi_error.mustache", "common", "error.go"));
+        supportingFiles.add(new SupportingFile("openapi_client.mustache", "common", "client.go"));
 
         if (additionalProperties.containsKey(WITH_GO_CODEGEN_COMMENT)) {
             setWithGoCodegenComment(Boolean.parseBoolean(additionalProperties.get(WITH_GO_CODEGEN_COMMENT).toString()));

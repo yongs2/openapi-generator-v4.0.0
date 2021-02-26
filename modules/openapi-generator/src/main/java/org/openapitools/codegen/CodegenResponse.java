@@ -42,6 +42,15 @@ public class CodegenResponse {
     public boolean isWildcard() {
         return "0".equals(code) || "default".equals(code);
     }
+    
+    public boolean isSuccessResponse() {
+        int statusCode = Integer.parseInt(code);
+        return statusCode >= 200 && statusCode < 300;
+    }
+    
+    public boolean isDefaultResponse() {
+        return code.equals("0");
+    }
 
     @Override
     public String toString() {
